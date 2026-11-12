@@ -6,7 +6,7 @@
 
   /* ---------- booking: builds the WhatsApp message ---------- */
   const SERVICES = { klasyczne: 'strzyżenie klasyczne + modelowanie (35 zł)', fade: 'fade / cieniowanie + modelowanie (45 zł)' };
-  const DAYS = { 1: ['poniedziałek', '15:00'], 2: ['wtorek', '16:45'], 3: ['środa', '15:45'], 4: ['czwartek', '15:00'], 5: ['piątek', '16:45'], 6: ['sobota'], 0: ['niedziela'] };
+  const DAYS = { 1: ['poniedziałek'], 2: ['wtorek', '16:45'], 3: ['środa', '15:45'], 4: ['czwartek', '15:00'], 5: ['piątek', '16:45'], 6: ['sobota'], 0: ['niedziela'] };
   const form = $('.pick');
   const update = () => {
     const s = form.usluga.value, d = form.dzien.value;
