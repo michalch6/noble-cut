@@ -6,7 +6,7 @@
 
   /* ---------- booking: builds the WhatsApp message ---------- */
   const SERVICES = { klasyczne: 'strzyżenie klasyczne + modelowanie (35 zł)', fade: 'fade / cieniowanie + modelowanie (45 zł)' };
-  const DAYS = { 1: ['poniedziałek'], 2: ['wtorek', '16:45'], 3: ['środa', '15:45'], 4: ['czwartek', '15:00'], 5: ['piątek', '16:45'], 6: ['sobota'], 0: ['niedziela'] };
+  const DAYS = { 1: ['poniedziałek'], 2: ['wtorek'], 3: ['środa'], 4: ['czwartek'], 5: ['piątek'], 6: ['sobota'], 0: ['niedziela'] };
   const form = $('.pick');
   const update = () => {
     const s = form.usluga.value, d = form.dzien.value;
@@ -34,6 +34,51 @@
   const unit = words.map((w) => `<span>${w}</span>`).join('');
   track.innerHTML = `<div style="display:flex">${unit}</div>`.repeat(4);
 
+  /* ---------- lightbox for the studio photos (works without GSAP) ---------- */
+  const shots = $$('.m-item');
+  const lb = $('.lb');
+  if (lb && shots.length && typeof lb.showModal === 'function') {
+    const big = $('.lb-stage img', lb), stage = $('.lb-stage', lb), count = $('.lb-count', lb);
+    let cur = 0, sx = null;
+    const at = (i) => shots[(i + shots.length) % shots.length];
+    const show = (i) => {
+      cur = (i + shots.length) % shots.length;
+      big.classList.add('ld');
+      big.onload = () => big.classList.remove('ld');
+      big.src = shots[cur].getAttribute('href');
+      big.alt = shots[cur].querySelector('img').alt;
+      count.textContent = (cur + 1) + ' / ' + shots.length;
+      [cur + 1, cur - 1].forEach((j) => { new Image().src = at(j).getAttribute('href'); });
+    };
+    shots.forEach((a, i) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      show(i);
+      lb.showModal();
+      document.documentElement.style.overflow = 'hidden';
+      if (window.__ncLenis) window.__ncLenis.stop();
+    }));
+    lb.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+      if (window.__ncLenis) window.__ncLenis.start();
+      shots[cur].focus({ preventScroll: true });
+    });
+    $('.lb-x', lb).addEventListener('click', () => lb.close());
+    $('.lb-prev', lb).addEventListener('click', () => show(cur - 1));
+    $('.lb-next', lb).addEventListener('click', () => show(cur + 1));
+    lb.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') show(cur + 1);
+      if (e.key === 'ArrowLeft') show(cur - 1);
+    });
+    stage.addEventListener('pointerdown', (e) => { sx = e.clientX; });
+    stage.addEventListener('pointerup', (e) => {
+      if (sx === null) return;
+      const dx = e.clientX - sx;
+      sx = null;
+      if (Math.abs(dx) > 50) show(cur + (dx < 0 ? 1 : -1));
+      else if (e.target === stage) lb.close();
+    });
+  }
+
   const dock = $('.dock');
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
     dock.classList.add('on');
@@ -44,6 +89,7 @@
   let lenis = null;
   if (!reduce && typeof Lenis !== 'undefined') {
     lenis = new Lenis({ lerp: 0.12, anchors: { offset: -64 } });
+    window.__ncLenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add((t) => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);
@@ -95,11 +141,18 @@
   $$('.spin').forEach((img, i) => gsap.from(img, { rotate: i ? 140 : -140, x: i ? 60 : -60, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: img, start: 'top 88%', once: true } }));
   gsap.from('.vgr img', { y: 50, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: '.vgr', start: 'top 85%', once: true } });
 
+  /* Masonry (React Bits): photos rise out of a blur, one after another */
+  gsap.set('.m-item', { opacity: 0, y: 60, filter: 'blur(10px)' });
+  ScrollTrigger.batch('.m-item', { start: 'top 92%', once: true, onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.9, ease: 'power3.out', stagger: 0.08, overwrite: true, clearProps: 'filter' }) });
+
+  /* Maja's photo drifts slower than the page */
+  gsap.fromTo('.about-pic img', { yPercent: -5, scale: 1.12 }, { yPercent: 5, scale: 1.12, ease: 'none', scrollTrigger: { trigger: '.about-pic', start: 'top bottom', end: 'bottom top', scrub: true } });
+
   /* photos: fan in, then TiltedCard under the mouse */
   const cards = $$('.cuts figure');
   const mm = gsap.matchMedia();
   mm.add('(min-width: 760px)', () => {
-    gsap.from(cards, { opacity: 0, y: 70, rotate: (i) => [-8, 5, 9][i], duration: 1, ease: 'power3.out', stagger: 0.12, scrollTrigger: { trigger: '.cuts', start: 'top 82%', once: true } });
+    gsap.from(cards, { opacity: 0, y: 70, rotate: (i) => [-8, 5, 9, -4][i % 4], duration: 1, ease: 'power3.out', stagger: 0.12, scrollTrigger: { trigger: '.cuts', start: 'top 82%', once: true } });
   });
   mm.add('(max-width: 759px)', () => {
     gsap.from(cards, { opacity: 0, x: 60, duration: 0.8, ease: 'power3.out', stagger: 0.1, scrollTrigger: { trigger: '.cuts', start: 'top 85%', once: true } });
