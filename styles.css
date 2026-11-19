@@ -114,7 +114,7 @@ fieldset{border:0;min-width:0}
 .cuts figure{flex:0 0 76%;scroll-snap-align:center;border:1px solid var(--gold-3);padding:6px;background:var(--bg-2)}
 .cuts img{width:100%;aspect-ratio:3/4;object-fit:cover}
 @media (min-width:760px){
-  .cuts{display:grid;grid-template-columns:repeat(4,1fr);align-items:start;gap:22px;overflow:visible;margin:0;padding:0;perspective:1100px}
+  .cuts{display:grid;grid-template-columns:repeat(5,1fr);align-items:start;gap:22px;overflow:visible;margin:0;padding:0;perspective:1100px}
   .cuts figure{will-change:transform}
   .cuts figure:nth-child(even){margin-top:44px}
 }
